@@ -43,7 +43,7 @@ impl<'a> VerificationHelper for Helper<'a> {
     }
 }
 
-fn verify_detatched(keyring: &[u8], signature: &[u8], data: &[u8]) -> Result<(), anyhow::Error> {
+fn verify_detached(keyring: &[u8], signature: &[u8], data: &[u8]) -> Result<(), anyhow::Error> {
     let ppr = PacketParser::from_bytes(keyring)?;
     let certs: Vec<openpgp::Cert> = CertParser::from(ppr).collect::<openpgp::Result<Vec<_>>>()?;
     let p = &StandardPolicy::new();
@@ -71,7 +71,7 @@ pub unsafe extern "C" fn pgp_verify_detached(
     let signature = slice::from_raw_parts(signature_ptr, signature_len);
     let data = slice::from_raw_parts(data_ptr, data_len);
 
-    match verify_detatched(keyring, signature, data) {
+    match verify_detached(keyring, signature, data) {
         Ok(_) => 0,
         Err(_) => -1,
     }
