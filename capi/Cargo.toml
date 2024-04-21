@@ -2,7 +2,7 @@
 name = "sequoia"
 version = "0.1.0"
 edition = "2021"
-license = "LGPL-2.0-or-later"
+license = "Apache-2.0"
 
 [lib]
 name = "sequoia"
@@ -10,7 +10,9 @@ crate-type = ["staticlib"]
 
 [dependencies]
 anyhow = "1.0"
+dirs = "5"
 libc = "0.2"
+sequoia-keystore = "0.3"
 sequoia-openpgp = { version = "1.18", default-features = false, features = ["crypto-openssl"] }
 
 [build-dependencies]
