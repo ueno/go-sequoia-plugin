@@ -3,14 +3,14 @@
 package main
 
 import (
+	"github.com/containers/image/v5/signature"
 	"log"
 	"plugin"
 	"sync"
-	"github.com/containers/image/v5/signature"
 )
 
 var (
-	initOnce sync.Once
+	initOnce   sync.Once
 	pluginRoot PluginRoot
 )
 

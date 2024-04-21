@@ -26,7 +26,8 @@ impl Mechanism {
     fn from_directory(dir: impl AsRef<Path>) -> Result<Self, anyhow::Error> {
         let mut builder = sequoia_keystore::Context::configure();
         if dir.as_ref() == Path::new("") {
-            let data_dir = dirs::data_dir().ok_or_else(|| anyhow::anyhow!("unable to determine XDG data directory"))?;
+            let data_dir = dirs::data_dir()
+                .ok_or_else(|| anyhow::anyhow!("unable to determine XDG data directory"))?;
             builder = builder.home(data_dir.join("sequoia"))
         } else {
             builder = builder.home(dir.as_ref());
