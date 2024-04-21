@@ -13,7 +13,7 @@ is implemented using sequoia-pgp through Rust FFI and then [CGO].
 Applications can dynamically load the plugin with
 [`plugin.Open`](signature/mechanism_sequoia.go). That way, it is
 possible to decouple the complicated build process involving both Rust
-and Go toolchain out of the image/signature package.
+and Go toolchain out of the application package.
 
 ## Prerequisites
 
