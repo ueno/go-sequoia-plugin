@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package main
+package signature
 
 import (
 	"github.com/containers/image/v5/signature"
