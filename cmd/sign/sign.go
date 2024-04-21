@@ -5,6 +5,8 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/ueno/go-sequoia-plugin/signature"
 )
 
 func main() {
@@ -21,7 +23,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	mechanism, err := NewGPGSigningMechanism()
+	mechanism, err := signature.NewGPGSigningMechanism()
 	if err != nil {
 		fmt.Println("unable to create signing mechanism: " + err.Error())
 		os.Exit(1)

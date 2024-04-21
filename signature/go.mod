@@ -1,10 +1,11 @@
-module github.com/ueno/go-sequoia-plugin
+module github.com/ueno/go-sequoia-plugin/signature
 
 go 1.21.9
 
+require github.com/containers/image/v5 v5.30.0
+
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/containers/image/v5 v5.30.0 // indirect
 	github.com/containers/libtrust v0.0.0-20230121012942-c1716e8a8d01 // indirect
 	github.com/containers/ocicrypt v1.1.9 // indirect
 	github.com/containers/storage v1.53.0 // indirect
