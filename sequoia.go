@@ -45,7 +45,7 @@ func (r *pluginRoot) NewEpehemralMechanism(
 	return mechanism, nil
 }
 
-type mechanism struct{
+type mechanism struct {
 	mechanism *C.Mechanism
 }
 
@@ -60,7 +60,7 @@ func (m *mechanism) SignWithPassphrase(
 		cPassphrase = nil
 	} else {
 		cPassphrase = C.CString(passphrase)
-	};
+	}
 	sig := C.pgp_sign(
 		m.mechanism,
 		C.CString(keyIdentity),
