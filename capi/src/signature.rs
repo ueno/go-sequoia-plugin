@@ -9,7 +9,7 @@ use openpgp::KeyHandle;
 use sequoia_cert_store::{Store as _, StoreUpdate as _};
 use sequoia_keystore;
 use sequoia_openpgp as openpgp;
-use std::ffi::{CStr, OsStr};
+use std::ffi::{CStr, CString, OsStr};
 use std::io::{Read, Write};
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
@@ -104,7 +104,7 @@ impl<'a> Mechanism<'a> {
         match &v.helper_ref().signer {
             Some(signer) => Ok(VerificationResult {
                 content,
-                signer: signer.clone(),
+                signer: CString::new(signer.fingerprint().to_hex().as_bytes()).unwrap(),
             }),
             None => Err(anyhow::anyhow!("No valid signature")),
         }
@@ -151,7 +151,7 @@ pub struct Signature {
 
 pub struct VerificationResult {
     content: Vec<u8>,
-    signer: openpgp::Cert,
+    signer: CString,
 }
 
 #[no_mangle]
@@ -223,11 +223,7 @@ pub unsafe extern "C" fn pgp_verification_result_get_content(
 pub unsafe extern "C" fn pgp_verification_result_get_signer(
     result_ptr: *const VerificationResult,
 ) -> *const c_char {
-    let fingerprint = (*result_ptr).signer.fingerprint();
-    match CStr::from_bytes_with_nul(fingerprint.to_hex().as_bytes()) {
-        Ok(c_fingerprint) => c_fingerprint.as_ptr(),
-        Err(_) => ptr::null(),
-    }
+    (*result_ptr).signer.as_ptr()
 }
 
 #[no_mangle]
