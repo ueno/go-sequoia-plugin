@@ -1,4 +1,4 @@
 /sequoia.so
 capi/include
 capi/target
-examples/sign/sign
+cmd/sign/sign

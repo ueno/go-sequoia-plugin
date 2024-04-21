@@ -19,11 +19,11 @@ for container [image](https://github.com/containers/image) signing.
 
 ## Usage
 
-1. cd examples/sign
+1. Generate an OpenPGP keypair for testing, e.g., `gpg2 --gen-key`, without passphrase
+1. Export the secret key, with `gpg2 --export-secret-key KEYID > KEYID.pgp`
+1. Import the secret key to sequoia-keystore, with `sq key import KEYID.pgp`
+1. `cd cmd/sign`
 1. `go build`
-1. generate an OpenPGP keypair for testing, e.g., `gpg2 --gen-key`, without passphrase
-1. export the secret key, with `gpg2 --export-secret-key KEYID > KEYID.pgp`
-1. import the secret key to sequoia-keystore, with `sq key import KEYID.pgp`
 1. `./sign KEYID somefile`
 
 ## License
