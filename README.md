@@ -1,13 +1,16 @@
 # go-sequoia-plugin
 
 go-sequoia-plugin is an experimental Go [plugin] wrapping OpenPGP
-signature operations backed by [sequoia-pgp].
+signature operations backed by [sequoia-pgp], to be used as an
+alternative
+[mechanism](https://github.com/containers/image/blob/main/signature/mechanism.go)
+for container [image](https://github.com/containers/image) signing.
 
 ## Prerequisites
 
 - Rust toolchain
 - Go toolchain
-- sequoia-sq package
+- sequoia-sq package for key manipulation
 - Dependencies: openssl-devel, sqlite3-devel, and bzip2-devel
 
 ## Building
