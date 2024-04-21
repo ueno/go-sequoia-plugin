@@ -12,6 +12,7 @@ crate-type = ["staticlib"]
 anyhow = "1.0"
 dirs = "5"
 libc = "0.2"
+sequoia-cert-store = "0.5"
 sequoia-keystore = "0.3"
 sequoia-openpgp = { version = "1.18", default-features = false, features = ["crypto-openssl"] }
 

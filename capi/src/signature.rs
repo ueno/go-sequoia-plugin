@@ -6,6 +6,7 @@ use openpgp::parse::{stream::*, PacketParser, Parse};
 use openpgp::policy::StandardPolicy;
 use openpgp::serialize::stream::{LiteralWriter, Message, Signer};
 use openpgp::KeyHandle;
+use sequoia_cert_store::{Store as _, StoreUpdate as _};
 use sequoia_keystore;
 use sequoia_openpgp as openpgp;
 use std::ffi::{CStr, OsStr};
@@ -14,28 +15,34 @@ use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::ptr;
 use std::slice;
+use std::sync::Arc;
 
 use crate::{set_error_from, Error};
 
-pub struct Mechanism {
+pub struct Mechanism<'a> {
     keystore: sequoia_keystore::Keystore,
-    certs: Vec<openpgp::Cert>,
+    certstore: Arc<sequoia_cert_store::CertStore<'a>>,
 }
 
-impl Mechanism {
+impl<'a> Mechanism<'a> {
     fn from_directory(dir: impl AsRef<Path>) -> Result<Self, anyhow::Error> {
-        let mut builder = sequoia_keystore::Context::configure();
-        if dir.as_ref() == Path::new("") {
+        let home_dir = if dir.as_ref() == Path::new("") {
             let data_dir = dirs::data_dir()
                 .ok_or_else(|| anyhow::anyhow!("unable to determine XDG data directory"))?;
-            builder = builder.home(data_dir.join("sequoia"))
+            data_dir.join("sequoia")
         } else {
-            builder = builder.home(dir.as_ref());
-        }
-        let context = builder.build()?;
+            dir.as_ref().to_path_buf()
+        };
+
+        let context = sequoia_keystore::Context::configure()
+            .home(&home_dir)
+            .build()?;
+        let keystore = sequoia_keystore::Keystore::connect(&context)?;
+
+        let certstore = sequoia_cert_store::CertStore::open(home_dir.join("certs"))?;
         Ok(Self {
-            keystore: sequoia_keystore::Keystore::connect(&context)?,
-            certs: Default::default(),
+            keystore,
+            certstore: Arc::new(certstore),
         })
     }
 
@@ -44,9 +51,13 @@ impl Mechanism {
         let certs: Vec<openpgp::Cert> =
             CertParser::from(ppr).collect::<openpgp::Result<Vec<_>>>()?;
         let context = sequoia_keystore::Context::configure().ephemeral().build()?;
+        let certstore = Arc::new(sequoia_cert_store::CertStore::empty());
+        for cert in certs {
+            certstore.update(Arc::new(sequoia_cert_store::LazyCert::from(cert)))?
+        }
         Ok(Self {
             keystore: sequoia_keystore::Keystore::connect(&context)?,
-            certs,
+            certstore,
         })
     }
 
@@ -81,7 +92,7 @@ impl Mechanism {
     fn verify(&mut self, signature: &[u8]) -> Result<VerificationResult, anyhow::Error> {
         let p = &StandardPolicy::new();
         let h = Helper {
-            certs: self.certs.clone(),
+            certstore: self.certstore.clone(),
             signer: Default::default(),
         };
         let mut v = VerifierBuilder::from_bytes(signature)?.with_policy(p, None, h)?;
@@ -100,17 +111,18 @@ impl Mechanism {
     }
 }
 
-struct Helper {
-    certs: Vec<openpgp::Cert>,
+struct Helper<'a> {
+    certstore: Arc<sequoia_cert_store::CertStore<'a>>,
     signer: Option<openpgp::Cert>,
 }
 
-impl VerificationHelper for Helper {
+impl<'a> VerificationHelper for Helper<'a> {
     fn get_certs(&mut self, ids: &[openpgp::KeyHandle]) -> openpgp::Result<Vec<openpgp::Cert>> {
         let mut certs = Vec::new();
         for id in ids {
-            if let Some(cert) = self.certs.iter().find(|cert| cert.key_handle() == *id) {
-                certs.push(cert.clone());
+            let matches = self.certstore.lookup_by_cert(id)?;
+            for lc in matches {
+                certs.push(lc.to_cert()?.clone());
             }
         }
         Ok(certs)
@@ -143,10 +155,10 @@ pub struct VerificationResult {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn pgp_mechanism_new_from_directory(
+pub unsafe extern "C" fn pgp_mechanism_new_from_directory<'a>(
     dir_ptr: *const c_char,
     err_ptr: *mut *mut Error,
-) -> *mut Mechanism {
+) -> *mut Mechanism<'a> {
     let c_dir = CStr::from_ptr(dir_ptr);
     let os_dir = OsStr::from_bytes(c_dir.to_bytes());
     match Mechanism::from_directory(os_dir) {
@@ -159,11 +171,11 @@ pub unsafe extern "C" fn pgp_mechanism_new_from_directory(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn pgp_mechanism_new_ephemeral(
+pub unsafe extern "C" fn pgp_mechanism_new_ephemeral<'a>(
     keyring_ptr: *const u8,
     keyring_len: size_t,
     err_ptr: *mut *mut Error,
-) -> *mut Mechanism {
+) -> *mut Mechanism<'a> {
     let keyring = slice::from_raw_parts(keyring_ptr, keyring_len);
     match Mechanism::ephemeral(keyring) {
         Ok(mechanism) => Box::into_raw(Box::new(mechanism)),
