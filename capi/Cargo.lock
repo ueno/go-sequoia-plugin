@@ -1844,7 +1844,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sequoia"
+name = "sequoia-capi"
 version = "0.1.0"
 dependencies = [
  "anyhow",
