@@ -27,7 +27,7 @@ func (r *pluginRoot) NewMechanismFromDirectory(
 	return mechanism, nil
 }
 
-func (r *pluginRoot) NewEpehemralMechanism(
+func (r *pluginRoot) NewEphemeralMechanism(
 	keyring []byte,
 ) (any, error) {
 	var cerr *C.Error

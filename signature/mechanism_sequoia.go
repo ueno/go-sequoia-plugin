@@ -19,7 +19,7 @@ type PluginRoot interface {
 		dir string,
 	) (any, error)
 
-	NewEpehemralMechanism(
+	NewEphemeralMechanism(
 		keyring []byte,
 	) (any, error)
 }
@@ -50,7 +50,7 @@ func NewGPGSigningMechanism() (signature.SigningMechanism, error) {
 }
 
 func NewEphemeralGPGSigningMechanism(blob []byte) (signature.SigningMechanism, []string, error) {
-	mech, err := pluginRoot.NewEpehemralMechanism(blob)
+	mech, err := pluginRoot.NewEphemeralMechanism(blob)
 	if err != nil {
 		return nil, nil, err
 	}
